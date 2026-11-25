@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+backend/.venv/
+backend/.env
+backend/tests/test_atad.db
+backend/app/storage/uploads/images/
+backend/app/data/*.db
+backend/app/storage/uploads/*
+backend/app/storage/exports/*
+!backend/app/storage/uploads/.gitkeep
+!backend/app/storage/exports/.gitkeep
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env*.local
+
+# OS / editor
+.shots/
+.DS_Store
+Thumbs.db
+*.log
+.pytest_cache/
+*.tsbuildinfo
