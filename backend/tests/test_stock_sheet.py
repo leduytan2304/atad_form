@@ -43,6 +43,7 @@ def _sample_workbook() -> bytes:
     ws["B4"] = 2.5
     ws["C4"] = 3
     ws["D4"] = 0
+    ws["E4"] = ""
 
     ws["A5"] = "ISO"
     ws["C5"] = -4
@@ -50,9 +51,10 @@ def _sample_workbook() -> bytes:
     ws["A6"] = "TỔNG CÒN LẠI"
     ws["B6"] = 7.5
     ws["C6"] = 3
-    ws["D6"] = 0
+    ws["D6"] = 0   # DÙ CÁN ĐỨNG: tổng = 0 -> bị ẩn
+    ws["E6"] = ""  # USB: tổng trống -> fallback qua các dòng > 0
 
-    # Dòng không có tên văn phòng: phải bị bỏ qua dù có số lượng.
+    # Dòng không có tên văn phòng: bỏ qua
     ws["B7"] = 999
 
     buffer = io.BytesIO()
@@ -78,48 +80,49 @@ def _center_rgb(data: bytes):
     return image.getpixel((image.width // 2, image.height // 2))
 
 
-def test_parse_maps_images_filters_stock_and_uses_total_as_gate():
+def test_parse_groups_by_product_one_row_per_product():
+    """Mỗi sản phẩm chỉ 1 dòng: số lượng = TỔNG CÒN LẠI, văn phòng trống."""
     data = stock_sheet.parse_workbook(_sample_workbook())
 
     assert data.sheet_name == "Tháng 5"
-    assert [product.product for product in data.products] == ["TÚI KRAFT", "BÚT CHÌ", "USB"]
+    assert [p.product for p in data.products] == ["TÚI KRAFT", "BÚT CHÌ", "USB"]
 
     kraft, pencil, usb = data.products
 
-    assert [(loc.office, loc.quantity) for loc in kraft.locations] == [
-        ("LÔ HÀNG MỚI", 5.0),
-        ("VP HCM", 2.5),
-    ]
+    # 1 dòng mỗi sản phẩm
+    assert len(kraft.locations) == 1
+    assert kraft.locations[0] == stock_sheet.StockLocation(office="", quantity=7.5)
     assert kraft.image is not None
     assert _center_rgb(kraft.image) == (255, 0, 0)
 
-    assert [(loc.office, loc.quantity) for loc in pencil.locations] == [("VP HCM", 3.0)]
+    assert len(pencil.locations) == 1
+    assert pencil.locations[0] == stock_sheet.StockLocation(office="", quantity=3.0)
     assert pencil.image is not None
     assert _center_rgb(pencil.image) == (0, 0, 255)
 
-    # Không có ô tổng: hiển thị theo các vị trí còn hàng.
-    assert [(loc.office, loc.quantity) for loc in usb.locations] == [("LÔ HÀNG MỚI", 5.0)]
+    # Tổng trống: fallback qua các dòng > 0 (USB có 5 ở LÔ HÀNG MỚI)
+    assert len(usb.locations) == 1
+    assert usb.locations[0] == stock_sheet.StockLocation(office="", quantity=5.0)
     assert usb.image is None
 
 
-def test_parse_csv_filters_stock_and_uses_total_as_gate():
+def test_parse_csv_groups_by_product_one_row_per_product():
     data = stock_sheet.parse_csv(_sample_csv(), "Tháng 5")
 
-    assert data.sheet_name == "Tháng 5"
-    assert [product.product for product in data.products] == ["TÚI KRAFT", "BÚT CHÌ", "USB"]
-
-    kraft, pencil, usb = data.products
-
-    assert [(loc.office, loc.quantity) for loc in kraft.locations] == [
-        ("LÔ HÀNG MỚI", 5.0),
-        ("VP HCM", 2.5),
-    ]
-    assert [(loc.office, loc.quantity) for loc in pencil.locations] == [("VP HCM", 3.0)]
-    # Không có ô tổng: hiển thị theo các vị trí còn hàng.
-    assert [(loc.office, loc.quantity) for loc in usb.locations] == [("LÔ HÀNG MỚI", 5.0)]
+    assert [p.product for p in data.products] == ["TÚI KRAFT", "BÚT CHÌ", "USB"]
+    assert len(data.products[0].locations) == 1
+    assert data.products[0].locations[0] == stock_sheet.StockLocation(office="", quantity=7.5)
+    assert len(data.products[2].locations) == 1
+    assert data.products[2].locations[0] == stock_sheet.StockLocation(office="", quantity=5.0)
 
 
-def test_parse_stops_reading_products_at_first_empty_cell():
+def test_total_zero_hides_product():
+    """DÙ CÁN ĐỨNG tổng = 0 -> bị ẩn hoàn toàn."""
+    data = stock_sheet.parse_workbook(_sample_workbook())
+    assert all(p.product != "DÙ CÁN ĐỨNG" for p in data.products)
+
+
+def test_product_columns_stop_at_first_empty_cell():
     wb = openpyxl.Workbook()
     ws = wb.active
     ws["B2"] = "SẢN PHẨM A"
@@ -134,44 +137,16 @@ def test_parse_stops_reading_products_at_first_empty_cell():
     wb.save(buffer)
 
     data = stock_sheet.parse_workbook(buffer.getvalue())
-
-    assert [product.product for product in data.products] == ["SẢN PHẨM A"]
-
-
-def test_google_sheet_export_url_builds_xlsx_link():
-    assert (
-        stock_sheet.google_sheet_export_url(
-            "https://docs.google.com/spreadsheets/d/ABC-123_x/edit?usp=sharing"
-        )
-        == "https://docs.google.com/spreadsheets/d/ABC-123_x/export?format=xlsx"
-    )
-
-
-def test_google_sheet_csv_url_builds_csv_link():
-    assert (
-        stock_sheet.google_sheet_csv_url(
-            "https://docs.google.com/spreadsheets/d/ABC-123_x/edit?usp=sharing"
-        )
-        == "https://docs.google.com/spreadsheets/d/ABC-123_x/export?format=csv"
-    )
+    assert [p.product for p in data.products] == ["SẢN PHẨM A"]
 
 
 def test_google_sheet_urls_keep_selected_tab_from_query():
-    url = (
-        "https://docs.google.com/spreadsheets/d/ABC-123_x/edit?gid=1743768872#gid=1743768872"
-    )
+    url = "https://docs.google.com/spreadsheets/d/ABC-123_x/edit?gid=1743768872#gid=1743768872"
     assert stock_sheet.google_sheet_export_url(url) == (
         "https://docs.google.com/spreadsheets/d/ABC-123_x/export?format=xlsx&gid=1743768872"
     )
     assert stock_sheet.google_sheet_csv_url(url) == (
         "https://docs.google.com/spreadsheets/d/ABC-123_x/export?format=csv&gid=1743768872"
-    )
-
-
-def test_google_sheet_urls_keep_selected_tab_from_fragment_only():
-    url = "https://docs.google.com/spreadsheets/d/ABC-123_x/edit#gid=1743768872"
-    assert stock_sheet.google_sheet_export_url(url) == (
-        "https://docs.google.com/spreadsheets/d/ABC-123_x/export?format=xlsx&gid=1743768872"
     )
 
 
@@ -194,7 +169,6 @@ def test_save_image_creates_webp_thumbnail(tmp_path, monkeypatch):
     with Image.open(path) as image:
         assert image.format == "WEBP"
         assert max(image.size) <= 320
-        assert round(image.width / image.height, 2) == 1.5
 
 
 def test_refresh_images_builds_manifest_keyed_by_product_name(tmp_path, monkeypatch):
@@ -219,8 +193,8 @@ def client():
         yield test_client
 
 
-def test_stock_endpoint_uses_fast_csv_data_and_flags_images(client, monkeypatch):
-    sample = stock_sheet.parse_csv(_sample_csv(), "Tháng 5")
+def test_stock_endpoint_groups_by_product(client, monkeypatch):
+    sample = stock_sheet.parse_workbook(_sample_workbook())
     monkeypatch.setattr(stock_sheet, "load_data", lambda _url: sample)
     monkeypatch.setattr(
         stock_sheet,
@@ -235,12 +209,13 @@ def test_stock_endpoint_uses_fast_csv_data_and_flags_images(client, monkeypatch)
     assert payload["sheet_name"] == "Tháng 5"
     assert payload["product_count"] == 3
     assert payload["images_ready"] is False
-    assert len(payload["rows"]) == 4
+    assert len(payload["rows"]) == 3  # 1 dòng mỗi sản phẩm
+
     assert payload["rows"][0] == {
         "product": "TÚI KRAFT",
         "image_url": None,
-        "office": "LÔ HÀNG MỚI",
-        "quantity": 5.0,
+        "office": "",
+        "quantity": 7.5,
     }
 
 

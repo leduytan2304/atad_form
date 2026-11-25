@@ -56,7 +56,6 @@ export default function StockLookup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
-  const [office, setOffice] = useState("");
   const [source, setSource] = useState("");
   const started = useRef(false);
   const retryCount = useRef(0);
@@ -106,22 +105,12 @@ export default function StockLookup() {
     return () => window.clearTimeout(timer);
   }, [data, load]);
 
-  const offices = useMemo(() => {
-    const seen: string[] = [];
-    for (const row of data?.rows ?? []) {
-      if (!seen.includes(row.office)) seen.push(row.office);
-    }
-    return seen;
-  }, [data]);
-
   const filtered = useMemo(() => {
     const needle = fold(query.trim());
     return (data?.rows ?? []).filter(
-      (row) =>
-        (!needle || fold(row.product).includes(needle)) &&
-        (!office || row.office === office),
+      (row) => !needle || fold(row.product).includes(needle),
     );
-  }, [data, query, office]);
+  }, [data, query]);
 
   const productCount = useMemo(
     () => new Set(filtered.map((row) => row.product)).size,
@@ -132,7 +121,6 @@ export default function StockLookup() {
     event.preventDefault();
     const url = source.trim();
     if (!url || loading) return;
-    setOffice("");
     setQuery("");
     loadNow(url === data?.source_url ? "" : url);
   };
@@ -229,8 +217,7 @@ export default function StockLookup() {
             <div>
               <h2>Vật phẩm còn tồn kho</h2>
               <small>
-                {productCount} sản phẩm · {filtered.length} dòng · {offices.length} văn
-                phòng
+                {productCount} sản phẩm · {filtered.length} dòng
               </small>
             </div>
           </div>
@@ -245,26 +232,13 @@ export default function StockLookup() {
                 aria-label="Tìm sản phẩm"
               />
             </div>
-            <select
-              className="select"
-              value={office}
-              onChange={(event) => setOffice(event.target.value)}
-              aria-label="Lọc theo văn phòng"
-            >
-              <option value="">Tất cả văn phòng</option>
-              {offices.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
         <div className="stock-table-wrap">
           <table className="stock-table">
             <caption className="sr-only">
-              Danh sách vật phẩm còn tồn kho theo văn phòng
+              Danh sách vật phẩm còn tồn kho
             </caption>
             <thead>
               <tr>
@@ -294,14 +268,8 @@ export default function StockLookup() {
                       </td>
                     </tr>
                   ))
-                : filtered.map((row, index) => {
-                    const isGroupStart =
-                      index === 0 || filtered[index - 1].product !== row.product;
-                    return (
-                      <tr
-                        key={`${row.product}-${row.office}-${index}`}
-                        className={isGroupStart && index > 0 ? "is-group-start" : undefined}
-                      >
+                : filtered.map((row, index) => (
+                      <tr key={`${row.product}-${index}`}>
                         <td>
                           <span className="stock-product">{row.product}</span>
                         </td>
@@ -309,24 +277,24 @@ export default function StockLookup() {
                           <StockThumb row={row} />
                         </td>
                         <td>
-                          <span className="stock-office">{row.office}</span>
+                          <span className="stock-office">{row.office || "—"}</span>
                         </td>
                         <td className="stock-qty">{quantityFormat.format(row.quantity)}</td>
                       </tr>
-                    );
-                  })}
+                    ))
+                  }
               {!firstLoad && filtered.length === 0 ? (
                 <tr>
                   <td colSpan={4}>
                     <div className="stock-empty">
                       <strong>
-                        {query || office
+                        {query
                           ? "Không có vật phẩm phù hợp bộ lọc"
                           : "Chưa có vật phẩm nào còn tồn kho"}
                       </strong>
                       <span>
-                        {query || office
-                          ? "Thử xóa từ khóa hoặc chọn lại văn phòng."
+                        {query
+                          ? "Thử xóa từ khóa."
                           : "Dữ liệu sẽ xuất hiện khi Google Sheet có số lượng lớn hơn 0."}
                       </span>
                     </div>
@@ -338,8 +306,8 @@ export default function StockLookup() {
         </div>
 
         <p className="stock-footnote">
-          Chỉ hiển thị sản phẩm có <strong>TỔNG CÒN LẠI</strong> lớn hơn 0 và từng dòng
-          có số lượng lớn hơn 0. Số lượng không được cộng gộp giữa các văn phòng.
+          Mỗi sản phẩm hiển thị 1 dòng. Số lượng lấy từ cột <strong>TỔNG CÒN LẠI</strong>
+          của Google Sheet; sản phẩm có tổng bằng 0 hoặc trống sẽ bị ẩn.
         </p>
       </section>
     </div>

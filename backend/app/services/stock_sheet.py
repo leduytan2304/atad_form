@@ -210,13 +210,16 @@ def parse_csv(data: bytes, sheet_name: str = "Google Sheet") -> StockData:
 
     result: list[ProductStock] = []
     for column_index, name in products:
-        locations = _locations_csv(rows, column_index, total_row)
-        if not locations:
-            continue
-
         total = _cell_number(rows[total_row], column_index) if total_row is not None else None
-        if total is not None and total <= 0:
-            continue
+
+        if total is not None:
+            if total <= 0:
+                continue
+            locations = [StockLocation(office="", quantity=total)]
+        else:
+            locations = _positive_locations_csv(rows, column_index, total_row)
+            if not locations:
+                continue
 
         result.append(
             ProductStock(
@@ -227,6 +230,28 @@ def parse_csv(data: bytes, sheet_name: str = "Google Sheet") -> StockData:
         )
 
     return StockData(products=result, sheet_name=sheet_name)
+
+
+def _positive_locations_csv(
+    rows: list[list[str]], column_index: int, total_row: int | None
+) -> list[StockLocation]:
+    """Tổng các ô lớn hơn 0 trong cột sản phẩm (dùng khi ô tổng trống)."""
+    pos_sum = 0.0
+    any_pos = False
+    for row_index in range(2, len(rows)):
+        if row_index == total_row:
+            continue
+        row = rows[row_index]
+        office = row[0].strip() if row and row[0] else ""
+        if not office:
+            continue
+        quantity = _cell_number(row, column_index)
+        if quantity is not None and quantity > 0:
+            pos_sum += quantity
+            any_pos = True
+    if not any_pos:
+        return []
+    return [StockLocation(office="", quantity=pos_sum)]
 
 
 def _row_columns(row: list[str]) -> list[tuple[int, str]]:
@@ -286,17 +311,21 @@ def parse_workbook(data: bytes) -> StockData:
 
     result: list[ProductStock] = []
     for column_index, name in products:
-        locations = _locations(worksheet, column_index, total_row)
-        if not locations:
-            continue
-
         total = (
             _number(worksheet.cell(total_row, column_index).value)
             if total_row is not None
             else None
         )
-        if total is not None and total <= 0:
-            continue
+
+        if total is not None:
+            if total <= 0:
+                continue
+            locations = [StockLocation(office="", quantity=total)]
+        else:
+            # Tổng trống: tổng các ô > 0 trong cột (bỏ dòng tổng, bỏ dòng không có văn phòng)
+            locations = _positive_locations(worksheet, column_index, total_row)
+            if not locations:
+                continue
 
         letter = get_column_letter(column_index)
         image, image_ext = images.get(column_index, (None, "png"))
@@ -311,6 +340,27 @@ def parse_workbook(data: bytes) -> StockData:
         )
 
     return StockData(products=result, sheet_name=worksheet.title)
+
+
+def _positive_locations(
+    sheet, column_index: int, total_row: int | None
+) -> list[StockLocation]:
+    """Tổng các ô lớn hơn 0 trong cột sản phẩm (dùng khi ô tổng trống)."""
+    pos_sum = 0.0
+    any_pos = False
+    for row_index in range(NAME_ROW + 1, sheet.max_row + 1):
+        if row_index == total_row:
+            continue
+        office = sheet.cell(row_index, 1).value
+        if not isinstance(office, str) or not office.strip():
+            continue
+        quantity = _number(sheet.cell(row_index, column_index).value)
+        if quantity is not None and quantity > 0:
+            pos_sum += quantity
+            any_pos = True
+    if not any_pos:
+        return []
+    return [StockLocation(office="", quantity=pos_sum)]
 
 
 def _pick_worksheet(data: bytes):
