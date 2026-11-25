@@ -16,6 +16,7 @@ import {
   TrashIcon,
 } from "@/components/Icons";
 import { api, type ProfileSet, type RequestItem, type SubmissionInput } from "@/lib/api";
+import { fromDateInputValue, toDateInputValue } from "@/lib/date";
 
 type Row = { key: string; text: string; image_id: number | null };
 
@@ -377,9 +378,9 @@ export default function HomePage() {
               <input
                 id="doc-date"
                 className="input"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                placeholder="DD/MM/YYYY"
+                type="date"
+                value={toDateInputValue(date)}
+                onChange={(e) => setDate(fromDateInputValue(e.target.value))}
               />
             </div>
           </div>

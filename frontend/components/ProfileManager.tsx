@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, type ProfileInput, type ProfileSet } from "@/lib/api";
+import { fromDateInputValue, toDateInputValue } from "@/lib/date";
 import { CheckIcon, CloseIcon, EditIcon, PlusIcon, TrashIcon } from "./Icons";
 
 type Props = {
@@ -229,9 +230,9 @@ export default function ProfileManager({ open, profiles, onClose, onChanged, not
                   <input
                     id="profile-date"
                     className="input"
-                    value={form.document_date}
-                    onChange={(e) => update("document_date", e.target.value)}
-                    placeholder="DD/MM/YYYY"
+                    type="date"
+                    value={toDateInputValue(form.document_date)}
+                    onChange={(e) => update("document_date", fromDateInputValue(e.target.value))}
                   />
                 </div>
                 <div className="field">

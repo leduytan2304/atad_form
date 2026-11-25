@@ -26,6 +26,7 @@ MAX_IMG_WIDTH_CM = 15.2
 MAX_IMG_HEIGHT_CM = 12.0
 NUMBER_PLACEHOLDER = "…..-……/TTr-……/ATAD"
 REF_PLACEHOLDER = "…………………………………………………"
+CITY = "TP.HCM"
 
 ImageLoader = Callable[[int], bytes | None]
 
@@ -152,15 +153,48 @@ def _format_date_parts(value: str) -> tuple[str, str, str]:
     return value, "……", "……"
 
 
+def _set_city(paragraph: Paragraph) -> None:
+    """Ghi địa danh trước ', Ngày/' giống file mẫu: 'TP.HCM, Ngày/ ...'."""
+    marker = ", Ngày/"
+    for run in paragraph.runs:
+        if marker in run.text:
+            run.text = CITY + run.text[run.text.index(marker):]
+            return
+
+
+def _set_date_part(runs, label: str, value: str) -> None:
+    """Điền giá trị vào run ngay sau nhãn 'date' / 'month' / 'year'."""
+    for index, run in enumerate(runs):
+        if run.text.strip() != label:
+            continue
+        filled = False
+        for follow in runs[index + 1:]:
+            text = follow.text
+            if any(stop in text for stop in ("Ngày/", "Tháng/", "năm/")):
+                break
+            if not text.strip():
+                continue
+            if not filled:
+                lead = text[: len(text) - len(text.lstrip())]
+                trail = text[len(text.rstrip()):]
+                follow.text = f"{lead}{value}{trail}"
+                filled = True
+            else:
+                follow.text = ""
+        return
+
+
 def _fill_meta(doc: Document, submission) -> None:
     paragraph = _find(doc, "Số/ No:")
     runs = paragraph.runs
-    if len(runs) >= 17:
+    if len(runs) >= 3:
         runs[2].text = f": {submission.document_number or NUMBER_PLACEHOLDER}"
-        day, month, year = _format_date_parts(submission.document_date)
-        runs[9].text = day
-        runs[13].text = f"{month} "
-        runs[16].text = f" {year}"
+
+    _set_city(paragraph)
+    day, month, year = _format_date_parts(submission.document_date)
+    _set_date_part(runs, "date", day)
+    _set_date_part(runs, "month", month)
+    _set_date_part(runs, "year", year)
 
     ref = _find(doc, "(V/v Ref:")
     if len(ref.runs) >= 3:
