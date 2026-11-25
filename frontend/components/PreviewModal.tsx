@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
+import { paginateDocx } from "@/lib/docxPagination";
 import { ArrowLeftIcon, CloseIcon, DownloadIcon, EyeIcon } from "./Icons";
 
 type Props = {
@@ -41,6 +42,10 @@ export default function PreviewModal({ open, submissionId, title, onClose, notif
           useBase64URL: true,
           ignoreLastRenderedPageBreak: false,
         });
+        // Chờ font tải xong rồi tự phân trang giống Word (docx-preview không làm việc này).
+        await document.fonts?.ready;
+        if (cancelled || !containerRef.current) return;
+        paginateDocx(containerRef.current);
       } catch (err) {
         if (!cancelled) {
           const message = err instanceof Error ? err.message : "Không xem trước được tài liệu";
