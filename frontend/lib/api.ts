@@ -38,6 +38,22 @@ export type UploadedImage = {
   original_name: string;
 };
 
+export type StockRow = {
+  product: string;
+  image_url: string | null;
+  office: string;
+  quantity: number;
+};
+
+export type StockData = {
+  rows: StockRow[];
+  sheet_name: string;
+  source_url: string;
+  fetched_at: string;
+  product_count: number;
+  images_ready: boolean;
+};
+
 export type Submission = {
   id: number;
   title: string;
@@ -137,6 +153,18 @@ export const api = {
         throw new Error(`${message} (mã ${response.status})`);
       }
       return response.blob();
+    },
+  },
+  stock: {
+    list: (url = "") => {
+      const params = new URLSearchParams();
+      if (url) params.set("url", url);
+      const query = params.toString();
+      return request<StockData>(`/api/stock${query ? `?${query}` : ""}`);
+    },
+    imageUrl: (path: string | null) => {
+      if (!path) return null;
+      return path.startsWith("http") ? path : `${API_URL}${path}`;
     },
   },
   uploads: {

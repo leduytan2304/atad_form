@@ -8,6 +8,7 @@ backend/app/storage/uploads/images/
 backend/app/data/*.db
 backend/app/storage/uploads/*
 backend/app/storage/exports/*
+backend/app/storage/stock/
 !backend/app/storage/uploads/.gitkeep
 !backend/app/storage/exports/.gitkeep
 

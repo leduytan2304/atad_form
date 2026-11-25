@@ -99,3 +99,19 @@ class UploadRead(BaseModel):
     id: int
     url: str
     original_name: str
+
+
+class StockRow(BaseModel):
+    product: str
+    image_url: str | None = None
+    office: str
+    quantity: float
+
+
+class StockRead(BaseModel):
+    rows: list[StockRow]
+    sheet_name: str
+    source_url: str
+    fetched_at: datetime
+    product_count: int
+    images_ready: bool = False

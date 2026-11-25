@@ -97,6 +97,15 @@ export function ArrowLeftIcon({ size = 16, className }: IconProps) {
   );
 }
 
+export function RefreshIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className} aria-hidden="true">
+      <path d="M20 11a8 8 0 10-2.34 6.34" />
+      <path d="M20 4v7h-7" />
+    </svg>
+  );
+}
+
 export function SearchIcon({ size = 16, className }: IconProps) {
   return (
     <svg {...base(size)} className={className} aria-hidden="true">

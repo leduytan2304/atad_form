@@ -8,12 +8,13 @@ BACKEND_DIR = BASE_DIR.parent
 STORAGE_DIR = BASE_DIR / "storage"
 UPLOAD_DIR = STORAGE_DIR / "uploads"
 EXPORT_DIR = STORAGE_DIR / "exports"
+STOCK_DIR = STORAGE_DIR / "stock"
 ASSET_DIR = BASE_DIR / "assets"
 
 # Nạp biến môi trường từ backend/.env (không ghi đè biến đã có sẵn).
 load_dotenv(BACKEND_DIR / ".env", override=False)
 
-for directory in (UPLOAD_DIR, EXPORT_DIR, ASSET_DIR, BASE_DIR / "data"):
+for directory in (UPLOAD_DIR, EXPORT_DIR, STOCK_DIR, ASSET_DIR, BASE_DIR / "data"):
     directory.mkdir(parents=True, exist_ok=True)
 
 
@@ -54,6 +55,13 @@ SUPABASE_S3_REGION = _env("SUPABASE_S3_REGION", "ap-northeast-1")
 SUPABASE_S3_ACCESS_KEY = _env("SUPABASE_S3_ACCESS_KEY")
 SUPABASE_S3_SECRET_KEY = _env("SUPABASE_S3_SECRET_KEY")
 SUPABASE_S3_BUCKET = _env("SUPABASE_S3_BUCKET", "uploads")
+
+# ----- Tra cứu vật phẩm từ Google Sheet -----
+STOCK_SHEET_URL = _env(
+    "STOCK_SHEET_URL",
+    "https://docs.google.com/spreadsheets/d/1f7Xjyqj2pcegXuKZjIA8kDsuiBCtm7M1DwsfnjOHAak/edit?usp=sharing",
+)
+STOCK_PREWARM = _env("ATAD_STOCK_PREWARM", "1") != "0"
 
 ALLOWED_IMAGE_TYPES = {
     "image/png": ".png",

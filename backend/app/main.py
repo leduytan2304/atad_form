@@ -4,10 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
+from .config import STOCK_PREWARM
 from .database import Base, SessionLocal, engine
 from .models import ContentTemplate, ProfileSet
-from .routers import profiles, submissions, templates, uploads
-from .services import storage
+from .routers import profiles, stock, submissions, templates, uploads
+from .services import stock_sheet, storage
 
 DEFAULT_TEMPLATES = [
     {
@@ -66,6 +67,8 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     storage.ensure_bucket()
     seed()
+    if STOCK_PREWARM:
+        stock_sheet.prewarm_images()
     yield
 
 
@@ -95,6 +98,7 @@ app.include_router(templates.router)
 app.include_router(submissions.router)
 app.include_router(uploads.router)
 app.include_router(uploads.files_router)
+app.include_router(stock.router)
 
 
 @app.get("/api/health")
