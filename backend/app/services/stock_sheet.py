@@ -211,26 +211,52 @@ def parse_csv(data: bytes, sheet_name: str = "Google Sheet") -> StockData:
     result: list[ProductStock] = []
     for column_index, name in products:
         total = _cell_number(rows[total_row], column_index) if total_row is not None else None
+<<<<<<< HEAD
         if total is None:
             total = _column_sum_csv(rows, column_index, total_row)
 
         # Giữ lại cả sản phẩm tồn kho bằng 0 hoặc âm để giao diện hiển thị đầy đủ.
+=======
+
+        if total is not None:
+            if total <= 0:
+                continue
+            locations = [StockLocation(office="", quantity=total)]
+        else:
+            locations = _positive_locations_csv(rows, column_index, total_row)
+            if not locations:
+                continue
+
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
         result.append(
             ProductStock(
                 product=name,
                 column=get_column_letter(column_index + 1),
+<<<<<<< HEAD
                 locations=[StockLocation(office="", quantity=total)],
+=======
+                locations=locations,
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
             )
         )
 
     return StockData(products=result, sheet_name=sheet_name)
 
 
+<<<<<<< HEAD
 def _column_sum_csv(
     rows: list[list[str]], column_index: int, total_row: int | None
 ) -> float:
     """Cộng toàn bộ giá trị trong cột khi ô tổng trống (gồm cả số âm)."""
     total = 0.0
+=======
+def _positive_locations_csv(
+    rows: list[list[str]], column_index: int, total_row: int | None
+) -> list[StockLocation]:
+    """Tổng các ô lớn hơn 0 trong cột sản phẩm (dùng khi ô tổng trống)."""
+    pos_sum = 0.0
+    any_pos = False
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
     for row_index in range(2, len(rows)):
         if row_index == total_row:
             continue
@@ -239,9 +265,18 @@ def _column_sum_csv(
         if not office:
             continue
         quantity = _cell_number(row, column_index)
+<<<<<<< HEAD
         if quantity is not None:
             total += quantity
     return total
+=======
+        if quantity is not None and quantity > 0:
+            pos_sum += quantity
+            any_pos = True
+    if not any_pos:
+        return []
+    return [StockLocation(office="", quantity=pos_sum)]
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 
 
 def _row_columns(row: list[str]) -> list[tuple[int, str]]:
@@ -270,6 +305,27 @@ def _find_total_row_csv(rows: list[list[str]], start: int) -> int | None:
     return found
 
 
+<<<<<<< HEAD
+=======
+def _locations_csv(
+    rows: list[list[str]], column_index: int, total_row: int | None
+) -> list[StockLocation]:
+    locations: list[StockLocation] = []
+    for row_index in range(2, len(rows)):
+        if row_index == total_row:
+            continue
+        row = rows[row_index]
+        office = row[0].strip() if row and row[0] else ""
+        if not office:
+            continue
+        quantity = _cell_number(row, column_index)
+        if quantity is None or quantity <= 0:
+            continue
+        locations.append(StockLocation(office=office, quantity=quantity))
+    return locations
+
+
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 def _cell_number(row: list[str], column_index: int) -> float | None:
     if column_index >= len(row):
         return None
@@ -288,18 +344,36 @@ def parse_workbook(data: bytes) -> StockData:
             if total_row is not None
             else None
         )
+<<<<<<< HEAD
         if total is None:
             # Tổng trống: cộng các ô trong cột (bỏ dòng tổng, bỏ dòng không có văn phòng).
             total = _column_sum(worksheet, column_index, total_row)
 
         # Giữ lại cả sản phẩm tồn kho bằng 0 hoặc âm để giao diện hiển thị đầy đủ.
+=======
+
+        if total is not None:
+            if total <= 0:
+                continue
+            locations = [StockLocation(office="", quantity=total)]
+        else:
+            # Tổng trống: tổng các ô > 0 trong cột (bỏ dòng tổng, bỏ dòng không có văn phòng)
+            locations = _positive_locations(worksheet, column_index, total_row)
+            if not locations:
+                continue
+
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
         letter = get_column_letter(column_index)
         image, image_ext = images.get(column_index, (None, "png"))
         result.append(
             ProductStock(
                 product=name,
                 column=letter,
+<<<<<<< HEAD
                 locations=[StockLocation(office="", quantity=total)],
+=======
+                locations=locations,
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
                 image=image,
                 image_ext=image_ext,
             )
@@ -308,9 +382,18 @@ def parse_workbook(data: bytes) -> StockData:
     return StockData(products=result, sheet_name=worksheet.title)
 
 
+<<<<<<< HEAD
 def _column_sum(sheet, column_index: int, total_row: int | None) -> float:
     """Cộng toàn bộ giá trị trong cột khi ô tổng trống (gồm cả số âm)."""
     total = 0.0
+=======
+def _positive_locations(
+    sheet, column_index: int, total_row: int | None
+) -> list[StockLocation]:
+    """Tổng các ô lớn hơn 0 trong cột sản phẩm (dùng khi ô tổng trống)."""
+    pos_sum = 0.0
+    any_pos = False
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
     for row_index in range(NAME_ROW + 1, sheet.max_row + 1):
         if row_index == total_row:
             continue
@@ -318,9 +401,18 @@ def _column_sum(sheet, column_index: int, total_row: int | None) -> float:
         if not isinstance(office, str) or not office.strip():
             continue
         quantity = _number(sheet.cell(row_index, column_index).value)
+<<<<<<< HEAD
         if quantity is not None:
             total += quantity
     return total
+=======
+        if quantity is not None and quantity > 0:
+            pos_sum += quantity
+            any_pos = True
+    if not any_pos:
+        return []
+    return [StockLocation(office="", quantity=pos_sum)]
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 
 
 def _pick_worksheet(data: bytes):
@@ -369,6 +461,24 @@ def _find_total_row(sheet) -> int | None:
     return found
 
 
+<<<<<<< HEAD
+=======
+def _locations(sheet, column_index: int, total_row: int | None) -> list[StockLocation]:
+    locations: list[StockLocation] = []
+    for row_index in range(NAME_ROW + 1, sheet.max_row + 1):
+        if row_index == total_row:
+            continue
+        office = sheet.cell(row_index, 1).value
+        if not isinstance(office, str) or not office.strip():
+            continue
+        quantity = _number(sheet.cell(row_index, column_index).value)
+        if quantity is None or quantity <= 0:
+            continue
+        locations.append(StockLocation(office=office.strip(), quantity=quantity))
+    return locations
+
+
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 def _images_by_column(sheet, products: list[tuple[int, str]]) -> dict[int, tuple[bytes, str]]:
     """Ghép ảnh vào cột theo tâm ngang của ảnh (ảnh có thể neo lệch cột)."""
     product_columns = {column for column, _name in products}

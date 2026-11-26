@@ -38,6 +38,7 @@ export type UploadedImage = {
   original_name: string;
 };
 
+<<<<<<< HEAD
 export type Unit = {
   id: number;
   name: string;
@@ -45,6 +46,8 @@ export type Unit = {
   updated_at: string;
 };
 
+=======
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 export type StockRow = {
   product: string;
   image_url: string | null;
@@ -174,6 +177,7 @@ export const api = {
       return path.startsWith("http") ? path : `${API_URL}${path}`;
     },
   },
+<<<<<<< HEAD
   units: {
     list: () => request<Unit[]>("/api/units"),
     create: (name: string) =>
@@ -182,6 +186,8 @@ export const api = {
       request<Unit>(`/api/units/${id}`, { method: "PUT", body: JSON.stringify({ name }) }),
     remove: (id: number) => request<void>(`/api/units/${id}`, { method: "DELETE" }),
   },
+=======
+>>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
   uploads: {
     create: async (file: File) => {
       const form = new FormData();
