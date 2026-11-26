@@ -9,3 +9,4 @@ if TEST_DB.exists():
 
 os.environ["ATAD_DATABASE_URL"] = f"sqlite:///{TEST_DB}"
 os.environ["ATAD_STORAGE_BACKEND"] = "local"
+os.environ["ATAD_STOCK_PREWARM"] = "0"

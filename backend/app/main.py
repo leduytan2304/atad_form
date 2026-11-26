@@ -4,10 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
+from .config import STOCK_PREWARM
 from .database import Base, SessionLocal, engine
-from .models import ContentTemplate, ProfileSet
-from .routers import profiles, submissions, templates, uploads
-from .services import storage
+from .models import ContentTemplate, ProfileSet, Unit
+from .routers import profiles, stock, submissions, templates, units, uploads
+from .services import stock_sheet, storage
+
+DEFAULT_UNITS = ["Cái", "Chiếc", "Bộ", "Hộp", "Thùng", "Túi"]
 
 DEFAULT_TEMPLATES = [
     {
@@ -58,6 +61,10 @@ def seed() -> None:
         if db.scalar(select(ContentTemplate).limit(1)) is None:
             for item in DEFAULT_TEMPLATES:
                 db.add(ContentTemplate(**item))
+        # Chỉ tạo danh sách đơn vị tính mặc định một lần; sau đó người dùng tự quản lý.
+        if db.scalar(select(Unit).limit(1)) is None:
+            for name in DEFAULT_UNITS:
+                db.add(Unit(name=name))
         db.commit()
 
 
@@ -66,6 +73,8 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     storage.ensure_bucket()
     seed()
+    if STOCK_PREWARM:
+        stock_sheet.prewarm_images()
     yield
 
 
@@ -95,6 +104,8 @@ app.include_router(templates.router)
 app.include_router(submissions.router)
 app.include_router(uploads.router)
 app.include_router(uploads.files_router)
+app.include_router(stock.router)
+app.include_router(units.router)
 
 
 @app.get("/api/health")

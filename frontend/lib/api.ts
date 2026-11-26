@@ -38,6 +38,29 @@ export type UploadedImage = {
   original_name: string;
 };
 
+export type Unit = {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StockRow = {
+  product: string;
+  image_url: string | null;
+  office: string;
+  quantity: number;
+};
+
+export type StockData = {
+  rows: StockRow[];
+  sheet_name: string;
+  source_url: string;
+  fetched_at: string;
+  product_count: number;
+  images_ready: boolean;
+};
+
 export type Submission = {
   id: number;
   title: string;
@@ -138,6 +161,26 @@ export const api = {
       }
       return response.blob();
     },
+  },
+  stock: {
+    list: (url = "") => {
+      const params = new URLSearchParams();
+      if (url) params.set("url", url);
+      const query = params.toString();
+      return request<StockData>(`/api/stock${query ? `?${query}` : ""}`);
+    },
+    imageUrl: (path: string | null) => {
+      if (!path) return null;
+      return path.startsWith("http") ? path : `${API_URL}${path}`;
+    },
+  },
+  units: {
+    list: () => request<Unit[]>("/api/units"),
+    create: (name: string) =>
+      request<Unit>("/api/units", { method: "POST", body: JSON.stringify({ name }) }),
+    update: (id: number, name: string) =>
+      request<Unit>(`/api/units/${id}`, { method: "PUT", body: JSON.stringify({ name }) }),
+    remove: (id: number) => request<void>(`/api/units/${id}`, { method: "DELETE" }),
   },
   uploads: {
     create: async (file: File) => {

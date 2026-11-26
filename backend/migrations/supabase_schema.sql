@@ -44,6 +44,14 @@ CREATE TABLE IF NOT EXISTS submissions (
     updated_at      TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- Đơn vị tính dùng khi lập tờ trình, quản lý độc lập với sản phẩm.
+CREATE TABLE IF NOT EXISTS units (
+    id         SERIAL PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now()
+);
+
 -- Bảng metadata ảnh: file nhị phân nằm trên Supabase S3 (bucket uploads),
 -- database chỉ lưu khóa object và thông tin hiển thị.
 CREATE TABLE IF NOT EXISTS uploaded_images (

@@ -59,6 +59,42 @@ def test_template_search_and_crud(client):
     assert client.delete(f"/api/templates/{tid}").status_code == 204
 
 
+def test_units_available_and_crud(client):
+    seeded = client.get("/api/units")
+    assert seeded.status_code == 200
+    assert len(seeded.json()) >= 1
+
+    created = client.post("/api/units", json={"name": "  Kg  "})
+    assert created.status_code == 201, created.text
+    unit = created.json()
+    assert unit["name"] == "Kg"
+    uid = unit["id"]
+
+    # Đơn vị tính mới được lưu lại và dùng được ở lần mở sau.
+    listed = client.get("/api/units").json()
+    assert any(item["id"] == uid and item["name"] == "Kg" for item in listed)
+
+    # Kiểm tra trùng lặp không phân biệt hoa thường / khoảng trắng.
+    duplicate = client.post("/api/units", json={"name": "kg"})
+    assert duplicate.status_code == 409
+
+    renamed = client.put(f"/api/units/{uid}", json={"name": "Ki-lô-gam"})
+    assert renamed.status_code == 200
+    assert renamed.json()["name"] == "Ki-lô-gam"
+
+    existing_name = next(item["name"] for item in listed if item["id"] != uid)
+    assert client.put(
+        f"/api/units/{uid}", json={"name": existing_name.upper()}
+    ).status_code == 409
+
+    blank = client.post("/api/units", json={"name": "   "})
+    assert blank.status_code == 422
+
+    assert client.delete(f"/api/units/{uid}").status_code == 204
+    assert all(item["id"] != uid for item in client.get("/api/units").json())
+    assert client.put(f"/api/units/{uid}", json={"name": "Không tồn tại"}).status_code == 404
+
+
 def test_upload_and_export_docx(client):
     import io
 

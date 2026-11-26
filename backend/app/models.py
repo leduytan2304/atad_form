@@ -68,6 +68,17 @@ class Submission(Base):
     profile: Mapped[ProfileSet | None] = relationship()
 
 
+class Unit(Base):
+    """Đơn vị tính dùng khi lập tờ trình, quản lý độc lập với sản phẩm."""
+
+    __tablename__ = "units"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
+
+
 class UploadedImage(Base):
     """Metadata ảnh lưu trên Supabase S3 (hoặc ổ đĩa khi chạy local)."""
 

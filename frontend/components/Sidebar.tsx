@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const items = [
   { href: "/", label: "Tờ trình", note: "Soạn và xuất biểu mẫu", code: "01", also: ["/history"] },
-  { href: "/feature-2", label: "Chức năng 2", note: "Bổ sung sau", code: "02", also: [] },
+  { href: "/feature-2", label: "Chức năng 2", note: "Tra cứu tồn kho vật phẩm", code: "02", also: [] },
   { href: "/feature-3", label: "Chức năng 3", note: "Bổ sung sau", code: "03", also: [] },
 ];
 

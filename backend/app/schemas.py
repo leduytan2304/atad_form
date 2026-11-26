@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ProfileSetBase(BaseModel):
@@ -95,7 +95,50 @@ class SubmissionRead(SubmissionBase):
     updated_at: datetime
 
 
+class UnitBase(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        name = value.strip()
+        if not name:
+            raise ValueError("Tên đơn vị tính không được để trống")
+        return name
+
+
+class UnitCreate(UnitBase):
+    pass
+
+
+class UnitUpdate(UnitBase):
+    pass
+
+
+class UnitRead(UnitBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+
 class UploadRead(BaseModel):
     id: int
     url: str
     original_name: str
+
+
+class StockRow(BaseModel):
+    product: str
+    image_url: str | None = None
+    office: str
+    quantity: float
+
+
+class StockRead(BaseModel):
+    rows: list[StockRow]
+    sheet_name: str
+    source_url: str
+    fetched_at: datetime
+    product_count: int
+    images_ready: bool = False
