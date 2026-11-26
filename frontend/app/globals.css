@@ -1283,7 +1283,6 @@ select {
   animation: stock-shimmer 1.3s ease infinite;
 }
 
-<<<<<<< HEAD
 .stock-skeleton td:nth-child(1) span {
   width: 18px;
   height: 18px;
@@ -1295,30 +1294,15 @@ select {
 }
 
 .stock-skeleton td:nth-child(3) span {
-=======
-.stock-skeleton td:nth-child(2) span {
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
   width: 92px;
   height: 68px;
 }
 
-<<<<<<< HEAD
 .stock-skeleton td:nth-child(4) span {
   width: 74%;
 }
 
 .stock-skeleton td:nth-child(5) span {
-=======
-.stock-skeleton td:nth-child(1) span {
-  width: 62%;
-}
-
-.stock-skeleton td:nth-child(3) span {
-  width: 74%;
-}
-
-.stock-skeleton td:nth-child(4) span {
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
   width: 52px;
   margin-left: auto;
 }
@@ -1332,7 +1316,6 @@ select {
   }
 }
 
-<<<<<<< HEAD
 /* ---------- Product selection ---------- */
 .stock-table {
   min-width: 760px;
@@ -1813,8 +1796,6 @@ select {
   text-align: center;
 }
 
-=======
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
   .sidebar {
@@ -1935,7 +1916,6 @@ select {
     flex-direction: column;
     align-items: flex-start;
   }
-<<<<<<< HEAD
 
   .stock-selection {
     flex-direction: column;
@@ -1975,8 +1955,6 @@ select {
     width: 60px;
     height: 46px;
   }
-=======
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 }
 
 @media (prefers-reduced-motion: reduce) {

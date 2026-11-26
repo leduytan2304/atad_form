@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-<<<<<<< HEAD
 import {
   ArrowLeftIcon,
   DocIcon,
@@ -18,10 +17,6 @@ import {
   type ToTrinhDraft,
   type ToTrinhItem,
 } from "@/lib/toTrinh";
-=======
-import { ImageIcon, RefreshIcon, SearchIcon } from "@/components/Icons";
-import { api, type StockData, type StockRow } from "@/lib/api";
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 
 const fold = (value: string) =>
   value
@@ -33,15 +28,12 @@ const fold = (value: string) =>
 
 const quantityFormat = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 2 });
 
-<<<<<<< HEAD
 type Mode = "select" | "compose" | "preview";
 
 type StockProduct = StockRow & { key: string };
 
 const productKey = (row: StockRow, index: number) => `${row.product}#${index}`;
 
-=======
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 function formatFetchedAt(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -54,41 +46,12 @@ function formatFetchedAt(value: string) {
   });
 }
 
-<<<<<<< HEAD
-=======
-function StockThumb({ row }: { row: StockRow }) {
-  const [failed, setFailed] = useState(false);
-  const src = api.stock.imageUrl(row.image_url);
-
-  if (!src || failed) {
-    return (
-      <span className="stock-noimg">
-        <ImageIcon size={16} />
-        <span>Chưa có ảnh</span>
-      </span>
-    );
-  }
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      className="stock-thumb"
-      src={src}
-      alt={`Hình ảnh ${row.product}`}
-      loading="lazy"
-      onError={() => setFailed(true)}
-    />
-  );
-}
-
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 export default function StockLookup() {
   const [data, setData] = useState<StockData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("");
-<<<<<<< HEAD
   const [mode, setMode] = useState<Mode>("select");
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<ToTrinhDraft>(emptyDraft);
@@ -98,8 +61,6 @@ export default function StockLookup() {
   const [unitsLoading, setUnitsLoading] = useState(false);
   const [unitsError, setUnitsError] = useState("");
 
-=======
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
   const started = useRef(false);
   const retryCount = useRef(0);
 
@@ -110,7 +71,6 @@ export default function StockLookup() {
       const payload = await api.stock.list(url);
       setData(payload);
       setSource(payload.source_url);
-<<<<<<< HEAD
 
       // Chỉ giữ lựa chọn còn tồn tại và còn hàng sau khi dữ liệu được làm mới.
       const selectable = new Set<string>();
@@ -127,8 +87,6 @@ export default function StockLookup() {
           ? previous
           : { ...previous, items };
       });
-=======
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
     } catch (err) {
       if (!silent) {
         setError(err instanceof Error ? err.message : "Không tải được dữ liệu vật phẩm.");
@@ -146,7 +104,6 @@ export default function StockLookup() {
     [load],
   );
 
-<<<<<<< HEAD
   const loadUnits = useCallback(async () => {
     setUnitsLoading(true);
     try {
@@ -161,18 +118,12 @@ export default function StockLookup() {
     }
   }, []);
 
-=======
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
   useEffect(() => {
     if (started.current) return;
     started.current = true;
     loadNow();
-<<<<<<< HEAD
     void loadUnits();
   }, [loadNow, loadUnits]);
-=======
-  }, [loadNow]);
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 
   // Ảnh được làm mới ở nền (file Excel nặng); tự thử lại vài lần để ảnh xuất hiện
   // mà không chặn lần tải dữ liệu đầu tiên.
@@ -189,7 +140,6 @@ export default function StockLookup() {
     return () => window.clearTimeout(timer);
   }, [data, load]);
 
-<<<<<<< HEAD
   const products = useMemo<StockProduct[]>(
     () =>
       (data?.rows ?? []).map((row, index) => ({
@@ -211,14 +161,6 @@ export default function StockLookup() {
       ),
     [products, selectedKeys],
   );
-=======
-  const filtered = useMemo(() => {
-    const needle = fold(query.trim());
-    return (data?.rows ?? []).filter(
-      (row) => !needle || fold(row.product).includes(needle),
-    );
-  }, [data, query]);
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
 
   const productCount = useMemo(
     () => new Set(filtered.map((row) => row.product)).size,
@@ -230,7 +172,6 @@ export default function StockLookup() {
     const url = source.trim();
     if (!url || loading) return;
     setQuery("");
-<<<<<<< HEAD
     setSelectedKeys(new Set());
     setDraft((previous) => ({ ...previous, items: [] }));
     setNotice("");
@@ -341,16 +282,10 @@ export default function StockLookup() {
     }));
   };
 
-=======
-    loadNow(url === data?.source_url ? "" : url);
-  };
-
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
   const firstLoad = loading && !data;
 
   return (
     <div className="page stock-page">
-<<<<<<< HEAD
       {mode === "select" ? (
         <header className="page-head">
           <div>
@@ -668,189 +603,6 @@ export default function StockLookup() {
           onBack={() => setMode("compose")}
         />
       ) : null}
-=======
-      <header className="page-head">
-        <div>
-          <div className="kicker">Chức năng 2 · Tra cứu vật phẩm</div>
-          <h1>Tồn kho vật phẩm</h1>
-          <p>
-            Đọc trực tiếp bảng tính Google Sheet mỗi lần mở trang. Chỉ hiển thị vật phẩm
-            còn tồn kho dương, tách riêng theo từng văn phòng.
-          </p>
-        </div>
-        <div className="head-actions">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => loadNow(data ? (source === data.source_url ? "" : source) : "")}
-            disabled={loading}
-          >
-            <RefreshIcon size={16} />
-            {loading ? "Đang đọc Google Sheet…" : "Tải lại dữ liệu"}
-          </button>
-        </div>
-      </header>
-
-      <section className="stock-source" aria-label="Nguồn dữ liệu">
-        <form onSubmit={applySource}>
-          <label className="field-label" htmlFor="stock-source-url">
-            Link Google Sheet
-          </label>
-          <div className="stock-source-row">
-            <input
-              id="stock-source-url"
-              className="input"
-              value={source}
-              onChange={(event) => setSource(event.target.value)}
-              placeholder="https://docs.google.com/spreadsheets/d/…"
-              spellCheck={false}
-              disabled={loading}
-            />
-            <button
-              type="submit"
-              className="btn"
-              disabled={loading || !source.trim() || source.trim() === data?.source_url}
-            >
-              Áp dụng link
-            </button>
-          </div>
-        </form>
-        <p className="stock-meta">
-          {data ? (
-            <>
-              Tab <strong>{data.sheet_name}</strong> · Cập nhật{" "}
-              <strong>{formatFetchedAt(data.fetched_at)}</strong>
-              {!data.images_ready ? " · Đang tải ảnh…" : ""} · Chỉ đọc, không chỉnh sửa
-              file nguồn.
-            </>
-          ) : (
-            "Dữ liệu được tải mới mỗi lần bấm tải lại, không lưu bản sao lâu dài."
-          )}
-        </p>
-      </section>
-
-      {error ? (
-        <div className="stock-alert" role="alert">
-          <div>
-            <strong>Không tải được dữ liệu</strong>
-            <p>{error}</p>
-          </div>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => loadNow(data?.source_url ?? "")}
-            disabled={loading}
-          >
-            Thử lại
-          </button>
-        </div>
-      ) : null}
-
-      <section
-        className="section stock-section"
-        aria-busy={loading}
-        hidden={Boolean(error) && !data}
-      >
-        <div className="section-head">
-          <div className="section-title">
-            <span className="section-no">02</span>
-            <div>
-              <h2>Vật phẩm còn tồn kho</h2>
-              <small>
-                {productCount} sản phẩm · {filtered.length} dòng
-              </small>
-            </div>
-          </div>
-          <div className="stock-filters">
-            <div className="stock-search">
-              <SearchIcon size={15} />
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Tìm sản phẩm…"
-                aria-label="Tìm sản phẩm"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="stock-table-wrap">
-          <table className="stock-table">
-            <caption className="sr-only">
-              Danh sách vật phẩm còn tồn kho
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Tên sản phẩm</th>
-                <th scope="col">Hình ảnh</th>
-                <th scope="col">Tên văn phòng</th>
-                <th scope="col" className="stock-qty-head">
-                  Số lượng
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {firstLoad
-                ? Array.from({ length: 6 }).map((_, index) => (
-                    <tr key={`skeleton-${index}`} className="stock-skeleton">
-                      <td>
-                        <span />
-                      </td>
-                      <td>
-                        <span />
-                      </td>
-                      <td>
-                        <span />
-                      </td>
-                      <td>
-                        <span />
-                      </td>
-                    </tr>
-                  ))
-                : filtered.map((row, index) => (
-                      <tr key={`${row.product}-${index}`}>
-                        <td>
-                          <span className="stock-product">{row.product}</span>
-                        </td>
-                        <td>
-                          <StockThumb row={row} />
-                        </td>
-                        <td>
-                          <span className="stock-office">{row.office || "—"}</span>
-                        </td>
-                        <td className="stock-qty">{quantityFormat.format(row.quantity)}</td>
-                      </tr>
-                    ))
-                  }
-              {!firstLoad && filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={4}>
-                    <div className="stock-empty">
-                      <strong>
-                        {query
-                          ? "Không có vật phẩm phù hợp bộ lọc"
-                          : "Chưa có vật phẩm nào còn tồn kho"}
-                      </strong>
-                      <span>
-                        {query
-                          ? "Thử xóa từ khóa."
-                          : "Dữ liệu sẽ xuất hiện khi Google Sheet có số lượng lớn hơn 0."}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-
-        <p className="stock-footnote">
-          Mỗi sản phẩm hiển thị 1 dòng. Số lượng lấy từ cột <strong>TỔNG CÒN LẠI</strong>
-          của Google Sheet; sản phẩm có tổng bằng 0 hoặc trống sẽ bị ẩn.
-        </p>
-      </section>
->>>>>>> 852bd44df957cc8f2da2b23f223d9b5b9ce8d5f2
     </div>
   );
 }
