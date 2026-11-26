@@ -251,7 +251,8 @@ export default function StockLookup() {
   };
 
   const openPreview = () => {
-    const found = validateDraft(draft, units);
+    const stockByKey = new Map(products.map((product) => [product.key, product.quantity]));
+    const found = validateDraft(draft, units, stockByKey);
     if (found.length > 0) {
       setIssues(found);
       return;

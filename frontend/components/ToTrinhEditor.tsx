@@ -4,6 +4,7 @@ import { ArrowLeftIcon, EyeIcon } from "@/components/Icons";
 import StockImage from "@/components/StockImage";
 import UnitManager from "@/components/UnitManager";
 import type { Unit } from "@/lib/api";
+import { formatSchedule, scheduleParts } from "@/lib/date";
 import type { ToTrinhDraft, ToTrinhItem } from "@/lib/toTrinh";
 
 type Props = {
@@ -35,6 +36,12 @@ export default function ToTrinhEditor({
   onUpdateUnit,
   onDeleteUnit,
 }: Props) {
+  const schedule = scheduleParts(draft.time);
+
+  const updateSchedule = (clock: string, date: string) => {
+    onChange({ time: formatSchedule(clock, date) });
+  };
+
   return (
     <div className="totrinh-editor">
       <section className="section">
@@ -60,17 +67,30 @@ export default function ToTrinhEditor({
                 maxLength={300}
               />
             </label>
-            <label className="field" htmlFor="totrinh-time">
-              <span>Thời gian</span>
-              <input
-                id="totrinh-time"
-                className="input"
-                value={draft.time}
-                onChange={(event) => onChange({ time: event.target.value })}
-                placeholder="Ví dụ: 08:00 – 17:00, 27/11/2026"
-                maxLength={200}
-              />
-            </label>
+            <div className="field">
+              <span className="field-label" id="totrinh-time-label">
+                Thời gian
+              </span>
+              <div className="totrinh-time-inputs" role="group" aria-labelledby="totrinh-time-label">
+                <input
+                  id="totrinh-time"
+                  className="input"
+                  type="time"
+                  step={60}
+                  value={schedule.clock}
+                  onChange={(event) => updateSchedule(event.target.value, schedule.date)}
+                  aria-label="Giờ"
+                />
+                <input
+                  id="totrinh-date"
+                  className="input"
+                  type="date"
+                  value={schedule.date}
+                  onChange={(event) => updateSchedule(schedule.clock, event.target.value)}
+                  aria-label="Ngày"
+                />
+              </div>
+            </div>
             <label className="field" htmlFor="totrinh-place">
               <span>Địa điểm</span>
               <input

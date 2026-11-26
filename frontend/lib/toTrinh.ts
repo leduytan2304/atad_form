@@ -1,4 +1,7 @@
 import type { Unit } from "@/lib/api";
+import { isCompleteSchedule } from "@/lib/date";
+
+const quantityFormat = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 2 });
 
 export type ToTrinhItem = {
   /** Khoá ổn định của sản phẩm trong danh sách tồn kho. */
@@ -28,11 +31,15 @@ export function unitName(units: Unit[], unitId: number | null): string {
   return units.find((unit) => unit.id === unitId)?.name ?? "";
 }
 
-export function validateDraft(draft: ToTrinhDraft, units: Unit[]): string[] {
+export function validateDraft(
+  draft: ToTrinhDraft,
+  units: Unit[],
+  stockByKey?: ReadonlyMap<string, number>,
+): string[] {
   const issues: string[] = [];
 
   if (!draft.group.trim()) issues.push("Vui lòng nhập thông tin đoàn.");
-  if (!draft.time.trim()) issues.push("Vui lòng nhập thời gian.");
+  if (!isCompleteSchedule(draft.time)) issues.push("Vui lòng chọn giờ và ngày.");
   if (!draft.place.trim()) issues.push("Vui lòng nhập địa điểm.");
 
   if (draft.items.length === 0) {
@@ -51,6 +58,14 @@ export function validateDraft(draft: ToTrinhDraft, units: Unit[]): string[] {
 
     if (!isPositiveInteger(item.quantity)) {
       issues.push(`${label}: số lượng phải là số nguyên dương.`);
+    } else if (stockByKey?.has(item.key)) {
+      const available = stockByKey.get(item.key) ?? 0;
+      const requested = Number(item.quantity);
+      if (requested > available) {
+        issues.push(
+          `${label}: số lượng nhập (${quantityFormat.format(requested)}) nhiều hơn tổng còn lại (${quantityFormat.format(available)}).`,
+        );
+      }
     }
   });
 

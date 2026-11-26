@@ -18,3 +18,33 @@ export function fromDateInputValue(value: string): string {
   const [, year, month, day] = match;
   return `${day}/${month}/${year}`;
 }
+
+export type ScheduleParts = {
+  /** Giá trị cho input type="time", dạng HH:mm. */
+  clock: string;
+  /** Giá trị cho input type="date", dạng YYYY-MM-DD. */
+  date: string;
+};
+
+/** Tách chuỗi thời gian đã lưu ("08:00, 27/11/2026") thành giờ và ngày cho ô chọn. */
+export function scheduleParts(value: string): ScheduleParts {
+  const text = (value || "").trim();
+  const full = text.match(/^(\d{2}:\d{2}),\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})$/);
+  if (full) return { clock: full[1], date: toDateInputValue(full[2]) };
+  if (/^\d{2}:\d{2}$/.test(text)) return { clock: text, date: "" };
+  const date = toDateInputValue(text);
+  if (date) return { clock: "", date };
+  return { clock: "", date: "" };
+}
+
+/** Ghép giờ (HH:mm) và ngày (YYYY-MM-DD) thành chuỗi hiển thị trên tờ trình. */
+export function formatSchedule(clock: string, date: string): string {
+  const time = /^\d{2}:\d{2}$/.test(clock) ? clock : "";
+  const day = fromDateInputValue(date);
+  if (time && day) return `${time}, ${day}`;
+  return time || day;
+}
+
+export function isCompleteSchedule(value: string): boolean {
+  return /^\d{2}:\d{2}, \d{2}\/\d{2}\/\d{4}$/.test((value || "").trim());
+}
